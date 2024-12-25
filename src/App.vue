@@ -1,25 +1,4 @@
 <template xmlns="http://www.w3.org/1999/html">
-  <abs-overlay v-if="chosenClimb !== null" @unclick="chosenClimb = null">
-    <div id="dialog" :style="{width: isLargeScreen ? '500px' : '100%'}">
-      <div v-if="!chosenClimb.completion">
-        <span id="d-user">Søren Balje&nbsp;</span>har <strong>ikke</strong> gennemført <em>{{ chosenClimb.name }}</em>
-      </div>
-      <div v-else>
-        <span id="d-user">Søren Balje&nbsp;</span>har gennemført <em>{{ chosenClimb.name }}</em>: {{ chosenClimb.completion }}
-      </div>
-        <fieldset>
-          <legend>Hvordan er ruten gennemført?</legend>
-          <div class="completion-option">
-            <input type="radio" name="completion" value="none" id="none" checked />
-            <label for="none">Ikke gennemført</label>
-          </div>
-          <div v-for="point in chosenClimb.points" class="completion-option">
-            <input type="radio" name="completion" :value="point.value" :id="point.key" checked />
-            <label :for="point.key">{{ point.key }}</label>
-          </div>
-        </fieldset>
-    </div>
-  </abs-overlay>
   <header>
     <div id="top">
       <div id="title">Slå Klubben</div>
@@ -46,11 +25,16 @@
     <div>
       <h2>ALLE {{ tab === 'routes' ? 'RUTER' : 'PROBLEMER' }}</h2>
       <ul class="completelist">
-        <li v-for="r in climbs.filter(c => c.type === 'route')">
-          <!--          <span class="status ok" v-if="true">✔</span>-->
-          <!--          <span class="status" v-else>✖</span>-->
-          <div class="name">{{ r.name }}</div>
-          <button @click="select(r)">Vælg ›</button>
+        <li v-for="climb in climbs.filter(c => c.type === 'route')">
+                    <span class="status ok" v-if="true">✔</span>
+                    <span class="status" v-else>✖</span>
+          <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
+          <select :id="'select-' + climb.id">
+            <optgroup label="Steffen Balje">
+              <option selected>Ikke gennemført</option>
+              <option v-for="point in climb.points">{{ point.key }}</option>
+            </optgroup>
+          </select>
         </li>
       </ul>
     </div>
@@ -59,7 +43,6 @@
 
 <script setup>
 import {ref, onMounted, onUnmounted} from 'vue';
-import AbsOverlay from "@/AbsOverlay.vue";
 
 const tab = ref('routes')
 
@@ -288,25 +271,5 @@ h2 {
   opacity: .3;
 }
 
-#d-user {
-  font-size: 110%;
-  font-weight: bold;
-}
-
-#dialog fieldset {
-  margin-top: 1rem;
-}
-
-#dialog .completion-option {
-  display: flex;
-  align-items: center;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-#dialog .completion-option label {
-  margin-left: 1rem;
-  flex: 1;
-}
 
 </style>
