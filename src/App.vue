@@ -1,7 +1,8 @@
 <template xmlns="http://www.w3.org/1999/html">
   <header>
     <div id="top">
-      <div id="title">Slå Klubben</div>
+      <div id="title" v-if="isLargeScreen">Slå Klubben</div>
+      <div id="title" v-else></div>
       <ul id="tabs">
         <li @click="tab = 'routes'" :class="{active: tab==='routes'}">
           Ruter
@@ -25,7 +26,7 @@
     <div>
       <h2>ALLE {{ tab === 'routes' ? 'RUTER' : 'PROBLEMER' }}</h2>
       <ul class="completelist">
-        <li v-for="climb in climbs.filter(c => c.type === 'route')">
+        <li v-for="climb in climbs.filter(c => c.type === 'route' && tab === 'routes' || c.type === 'problem' && tab === 'problems')">
                     <span class="status ok" v-if="true">✔</span>
                     <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
