@@ -1,4 +1,35 @@
 <template xmlns="http://www.w3.org/1999/html">
+  <abs-overlay @unclick="editUsers = false" v-if="users.size === 0 || editUsers">
+    <div id="dialog">
+      <svg style="display: none;" xmlns="http://www.w3.org/2000/svg">
+        <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+        <symbol id="delete-icon" viewBox="0 0 512 512">
+          <path
+            d="M256 48a208 208 0 1 1 0 416 208 208 0 1 1 0-416zm0 464A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c-9.4 9.4-9.4 24.6 0 33.9l47 47-47 47c-9.4 9.4-9.4 24.6 0 33.9s24.6 9.4 33.9 0l47-47 47 47c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-47-47 47-47c9.4-9.4 9.4-24.6 0-33.9s-24.6-9.4-33.9 0l-47 47-47-47c-9.4-9.4-24.6-9.4-33.9 0z"/>
+        </symbol>
+      </svg>
+      <div class="title">
+        <span>Brugere</span>
+        <span class="close" :style="{opacity: users.size === 0 ? '.1' : undefined}"
+              @click="editUsers = false">LUK</span>
+      </div>
+      <div class="add">
+        <form onsubmit="return false">
+          <input type="text" placeholder="Indtast fuldt navn" v-model="enteredName"/>
+          <input type="submit" class="btn" :style="{opacity: enteredName === '' ? .5 : 1}" @click="addUser(enteredName)"
+                 value="Opret"/>
+        </form>
+      </div>
+      <ol class="user-list">
+        <li v-for="user of users">
+          <span>{{ user }}</span>
+          <svg class="delete-icon" @click="users.delete(user)">
+            <use xlink:href="#delete-icon"></use>
+          </svg>
+        </li>
+      </ol>
+    </div>
+  </abs-overlay>
   <header>
     <div id="top">
       <div id="title" v-if="isLargeScreen">Slå Klubben</div>
@@ -13,7 +44,7 @@
       </ul>
       <div id="user">
         <div v-if="isLargeScreen">Søren Balje</div>
-        <div class="user-icon">
+        <div class="user-icon" @click="editUsers = true">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
             <path
               d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -26,9 +57,10 @@
     <div>
       <h2>ALLE {{ tab === 'routes' ? 'RUTER' : 'PROBLEMER' }}</h2>
       <ul class="completelist">
-        <li v-for="climb in climbs.filter(c => c.type === 'route' && tab === 'routes' || c.type === 'problem' && tab === 'problems')">
-                    <span class="status ok" v-if="true">✔</span>
-                    <span class="status" v-else>✖</span>
+        <li
+          v-for="climb in climbs.filter(c => c.type === 'route' && tab === 'routes' || c.type === 'problem' && tab === 'problems')">
+          <span class="status ok" v-if="true">✔</span>
+          <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
           <select :id="'select-' + climb.id">
             <optgroup label="Steffen Balje">
@@ -44,36 +76,43 @@
 
 <script setup>
 import {ref, onMounted, onUnmounted} from 'vue';
+import AbsOverlay from "@/AbsOverlay.vue";
 
-const tab = ref('routes')
-
-const climbs = ref([])
-
-const chosenClimb = ref(null)
-
-const isLargeScreen = ref(false);
-
-const climbTypeDanish = function (climbType, singular = true, definite = true) {
-  if (climbType === 'route') {
-    if (singular) {
-      return definite ? 'ruten' : 'rute'
-    } else {
-      return definite ? 'ruterne' : 'ruter'
-    }
-  } else if (climbType === 'problem') {
-    if (singular) {
-      return definite ? 'problemet' : 'problem'
-    } else {
-      return definite ? 'problemerne' : 'problemer'
-    }
+const randomUUID = function () {
+  if (crypto?.randomUUID) {
+    return crypto.randomUUID()
+  } else {
+    console.debug('No crypto. Using Math.random')
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    })
   }
 }
 
-const select = function (climb) {
-  console.log(climb)
-  chosenClimb.value = climb
-}
 const deviceId = ref(null)
+if (!window.localStorage.getItem('device-id')) {
+  window.localStorage.setItem('device-id', randomUUID())
+}
+deviceId.value = window.localStorage.getItem('device-id')
+
+console.debug('Device id', deviceId.value)
+
+const tab = ref('routes')
+
+const users = ref(new Set)
+const editUsers = ref(users.value.size === 0)
+const enteredName = ref('')
+const addUser = function (name) {
+  editUsers.value = true
+  users.value.add(name)
+  enteredName.value = ''
+}
+
+const climbs = ref([])
+
+const isLargeScreen = ref(false)
 
 const register = async function () {
   return fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev', {
@@ -109,12 +148,6 @@ const checkScreenSize = () => {
 onMounted(() => {
   checkScreenSize(); // Initial check
   window.addEventListener('resize', checkScreenSize);
-  deviceId.value = window.localStorage.getItem('device-id')
-  if (deviceId.value === null) {
-    window.localStorage.setItem('device-id', crypto.randomUUID())
-  }
-  console.debug('Device id', deviceId.value)
-
 });
 
 onUnmounted(() => {
@@ -211,7 +244,25 @@ header {
   margin-left: 1rem;
   width: 2rem;
   height: 2rem;
+  cursor: pointer;
 }
+
+.delete-icon {
+  margin-left: 1rem;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  opacity: .4;
+}
+
+.delete-icon:hover {
+  opacity: 1;
+}
+
+.delete-icon:active {
+  transform: scale(.96);
+}
+
 
 /* Main Content */
 main {
@@ -246,15 +297,21 @@ main {
   margin-right: 2rem;
 }
 
-.completelist input {
+#dialog .add .btn {
+  background-color: #bbb;
+  color: white;
+  margin-left: 1rem;
+  padding: .4rem .6rem;
+  border: none;
   cursor: pointer;
-  zoom: 1.3;
 }
 
-.completelist button {
-  padding: .4rem .6rem;
-  border-radius: 0;
-  border: 1px solid black;
+#dialog .add .btn:hover {
+  background-color: #999;
+}
+
+#dialog .add .btn:active {
+  color: #eee;
 }
 
 .completelist .status {
@@ -266,11 +323,72 @@ main {
 }
 
 h2 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
   font-size: 90%;
   opacity: .3;
 }
 
+main h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+
+#dialog .title {
+  background-color: #7da0cd;
+  padding: 1rem 1.2rem;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#dialog .title .close {
+  font-size: .7rem;
+  opacity: .6;
+  cursor: pointer;
+  padding: .3rem;
+  margin-right: -.3rem;
+  user-select: none;
+}
+
+#dialog .title .close:hover {
+  opacity: .8;
+}
+
+#dialog .title .close:active {
+  opacity: .9;
+}
+
+#dialog .add {
+  background-color: #e4e4e4;
+  padding: .5rem .9rem;
+
+  color: white;
+  font-weight: bold;
+}
+
+#dialog .add input {
+  padding: .3rem;
+}
+
+#dialog .user-list {
+  margin: 0 1rem 0 1.3rem;
+  padding-left: 0;
+}
+
+#dialog .user-list li {
+  font-size: 105%;
+  list-style-type: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#dialog .user-list li input {
+  font-size: 110%;
+}
 
 </style>
