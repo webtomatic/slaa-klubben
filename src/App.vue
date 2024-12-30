@@ -9,18 +9,18 @@
         </symbol>
       </svg>
       <div class="title">
-        <span>Brugere</span>
-        <span class="close" :style="{opacity: users.size === 0 ? '.1' : undefined}"
+        <span>Bruger{{ isFirstUser ? '' : 'e' }}</span>
+        <span v-if="!isFirstUser" class="close" :style="{opacity: users.size === 0 ? '.1' : undefined}"
               @click="editUsers = false">LUK</span>
       </div>
-      <div class="add">
+      <div class="add" :style="{padding: isFirstUser ? '1.4rem' : undefined}">
         <form onsubmit="return false">
-          <input type="text" placeholder="Indtast fuldt navn" v-model="enteredName"/>
-          <input type="submit" class="btn" :style="{opacity: enteredName === '' ? .5 : 1}" @click="addUser(enteredName)"
-                 value="Opret"/>
+          <input type="text" size="16" name="name" :placeholder="isFirstUser ? 'Dit fulde navn' : 'Indtast fuldt navn'" v-model="enteredName"/>
+          <input type="submit" class="btn" :style="{opacity: enteredName === '' ? .5 : 1}" @click="addUser(enteredName, isFirstUser)"
+                 :value="isFirstUser ? 'Start' : 'Opret'"/>
         </form>
       </div>
-      <ol class="user-list">
+      <ol class="user-list" v-if="!isFirstUser">
         <li v-for="user of users">
           <span>{{ user }}</span>
           <svg class="delete-icon" @click="users.delete(user)">
@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onUnmounted} from 'vue';
+import {ref, onMounted, onUnmounted, computed} from 'vue';
 import AbsOverlay from "@/AbsOverlay.vue";
 
 const randomUUID = function () {
@@ -105,10 +105,17 @@ const users = ref(new Set)
 const editUsers = ref(users.value.size === 0)
 const enteredName = ref('')
 const addUser = function (name) {
+  if (isFirstUser.value) {
+    editUsers.value = false
+    currentUser.value = name
+  } else {
   editUsers.value = true
+    }
   users.value.add(name)
   enteredName.value = ''
 }
+const currentUser = ref(null)
+const isFirstUser = computed(() => users.value.size === 0)
 
 const climbs = ref([])
 
@@ -335,7 +342,7 @@ main h2 {
 
 #dialog .title {
   background-color: #7da0cd;
-  padding: 1rem 1.2rem;
+  padding: 1rem 1.7rem;
   color: white;
   font-weight: bold;
   display: flex;
@@ -362,7 +369,7 @@ main h2 {
 
 #dialog .add {
   background-color: #e4e4e4;
-  padding: .5rem .9rem;
+  padding: .5rem 1.0rem .5rem 1.3rem;
 
   color: white;
   font-weight: bold;
@@ -373,18 +380,22 @@ main h2 {
 }
 
 #dialog .user-list {
-  margin: 0 1rem 0 1.3rem;
+  margin: .5rem 0;
   padding-left: 0;
 }
 
 #dialog .user-list li {
   font-size: 105%;
   list-style-type: none;
-  margin: 1rem 0;
-  padding: 0;
+  margin:  0;
+  padding: 1rem 1.0rem 1rem 1.7rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+#dialog .user-list li:hover {
+  background-color: #eee;
 }
 
 #dialog .user-list li input {

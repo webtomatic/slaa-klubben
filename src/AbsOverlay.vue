@@ -27,6 +27,7 @@ const unclick = function (event) {
   display: flex;
   align-items: start;
   justify-content: center;
+  backdrop-filter: blur(2px);
 }
 
 #dialog {
