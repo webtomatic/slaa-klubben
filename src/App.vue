@@ -70,10 +70,10 @@
           <span class="status ok" v-if="true">✔</span>
           <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
-          <select :id="'select-' + climb.id">
+          <select :id="'select-' + climb.id" :value="userCompletion.find(c => c.climb === climb.id)?.completion" @change="val => changeCompletion(climb.id, val === '' ? null : val)">
             <optgroup :label="currentUser">
-              <option selected>Ikke gennemført</option>
-              <option v-for="point in climb.points">{{ point.key }}</option>
+              <option selected value="">Ikke gennemført</option>
+              <option v-for="point in climb.points" :value="point.key">{{ point.key }}</option>
             </optgroup>
           </select>
         </li>
@@ -137,32 +137,48 @@ const deleteUser = function (name) {
 }
 
 const climbs = ref([])
+const completion = ref([])
+
+const userCompletion = computed(() => completion.value.filter(c => c.device_id === deviceId.value && c.user_name === currentUser.value))
 
 const isLargeScreen = ref(false)
 
-const register = async function () {
+const changeCompletion = async function (climbId, climbCompletion) {
+  console.log('cp', climbCompletion)
+  return
   return fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev', {
     method: 'POST',
     body: JSON.stringify({
       device_id: deviceId.value,
-      user_name: 'Steffen Balje',
-      completed: true,
-      climb_id: 'R1',
-      climb_completion: 'Zone',
+      user_name: currentUser.value,
+      climb: climbId,
+      completion: climbCompletion,
     }),
   })
 }
 
-const loadClimbs = async function () {
-  const res = await fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev');
+const loadClimbs = async () => {
+  const res = await fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev?action=climbs');
   if (!res.ok) {
-    throw new Error('Failed to get climbs')
+    throw new Error('Failed to get climbs.')
   }
   const loadedClimbs = await res.json();
   climbs.value = loadedClimbs.data;
 }
 
 loadClimbs()
+
+const loadCompletion = async () => {
+  const res = await fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev?action=completion');
+  if (!res.ok) {
+    throw new Error('Failed to get completion.')
+  }
+  const loadedCompletion = await res.json();
+  completion.value = loadedCompletion.data;
+}
+
+loadCompletion()
+
 
 // Function to check screen size
 const checkScreenSize = () => {
