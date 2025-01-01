@@ -15,15 +15,18 @@
       </div>
       <div class="add" :style="{padding: isFirstUser ? '1.4rem' : undefined}">
         <form onsubmit="return false">
-          <input type="text" size="16" name="name" :placeholder="isFirstUser ? 'Dit fulde navn' : 'Indtast fuldt navn'" v-model="enteredName"/>
-          <input type="submit" class="btn" :style="{opacity: enteredName === '' ? .5 : 1}" @click="addUser(enteredName, isFirstUser)"
+          <input type="text" size="16" name="name" :placeholder="isFirstUser ? 'Dit fulde navn' : 'Indtast fuldt navn'"
+                 v-model="enteredName"/>
+          <input type="submit" class="btn" :style="{opacity: enteredName === '' ? .5 : 1}"
+                 @click="addUser(enteredName, isFirstUser)"
                  :value="isFirstUser ? 'Start' : 'Opret'"/>
         </form>
       </div>
       <ol class="user-list" v-if="!isFirstUser">
-        <li v-for="user of users">
-          <span>{{ user }}</span>
-          <svg class="delete-icon" @click="users.delete(user)">
+        <li v-for="user of users" :class="{chosen: user === currentUser}">
+          <span class="mark">✔</span>
+          <span class="name" @click="currentUser = user">{{ user }}</span>
+          <svg class="delete-icon" @click="deleteUser(user)">
             <use xlink:href="#delete-icon"></use>
           </svg>
         </li>
@@ -43,7 +46,12 @@
         </li>
       </ul>
       <div id="user">
-        <div v-if="isLargeScreen">Søren Balje</div>
+        <div v-if="isLargeScreen">
+          <span v-if="users.size === 1">{{ currentUser }}</span>
+          <select v-else class="chosen-user" v-model="currentUser">
+          <option v-for="user in users" :value="user">{{ user }}</option>
+        </select>
+        </div>
         <div class="user-icon" @click="editUsers = true">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
             <path
@@ -63,7 +71,7 @@
           <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
           <select :id="'select-' + climb.id">
-            <optgroup label="Steffen Balje">
+            <optgroup :label="currentUser">
               <option selected>Ikke gennemført</option>
               <option v-for="point in climb.points">{{ point.key }}</option>
             </optgroup>
@@ -109,13 +117,24 @@ const addUser = function (name) {
     editUsers.value = false
     currentUser.value = name
   } else {
-  editUsers.value = true
-    }
+    editUsers.value = true
+  }
   users.value.add(name)
   enteredName.value = ''
 }
 const currentUser = ref(null)
 const isFirstUser = computed(() => users.value.size === 0)
+const deleteUser = function (name) {
+  users.value.delete(name)
+  if (currentUser.value === name) {
+    if (users.value.size > 0) {
+      currentUser.value = users.value.values().next().value
+    } else {
+      currentUser.value = null
+    }
+
+  }
+}
 
 const climbs = ref([])
 
@@ -245,6 +264,10 @@ header {
   align-items: center;
   justify-content: end;
   flex: 1;
+}
+
+#user .chosen-user {
+  padding: .3rem;
 }
 
 .user-icon {
@@ -380,18 +403,18 @@ main h2 {
 }
 
 #dialog .user-list {
-  margin: .5rem 0;
+  margin: 0;
   padding-left: 0;
 }
 
 #dialog .user-list li {
   font-size: 105%;
   list-style-type: none;
-  margin:  0;
-  padding: 1rem 1.0rem 1rem 1.7rem;
+  margin: 0;
+  padding: 0rem 1.0rem 0rem .5rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: start;
 }
 
 #dialog .user-list li:hover {
@@ -400,6 +423,25 @@ main h2 {
 
 #dialog .user-list li input {
   font-size: 110%;
+}
+
+#dialog .user-list li .mark {
+  margin-right: .5rem;
+  visibility: hidden;
+}
+
+#dialog .user-list li .name {
+  flex: 1;
+  cursor: pointer;
+  padding: 1rem 0;
+}
+
+#dialog .user-list li.chosen .name {
+  font-weight: bold;
+}
+
+#dialog .user-list li.chosen .mark {
+  visibility: visible;
 }
 
 </style>
