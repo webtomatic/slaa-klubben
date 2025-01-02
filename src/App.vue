@@ -148,7 +148,7 @@ const userCompletion = computed(() => completion.value.filter(c => c.device_id =
 const isLargeScreen = ref(false)
 
 const changeCompletion = async function (climbId, climbCompletion) {
-  return fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev', {
+  return fetch('https://script.google.com/macros/s/AKfycbxzlbL6VpCjRSDVMUm_cRU0cSl2d-eIaiUEmCN8Cn0OLWvxuRjGr6pYOQb5HaoTJlhAMw/exec', {
     method: 'POST',
     body: JSON.stringify({
       device_id: deviceId.value,
@@ -160,7 +160,7 @@ const changeCompletion = async function (climbId, climbCompletion) {
 }
 
 const loadClimbs = async () => {
-  const res = await fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev?action=climbs');
+  const res = await fetch('https://script.google.com/macros/s/AKfycbxzlbL6VpCjRSDVMUm_cRU0cSl2d-eIaiUEmCN8Cn0OLWvxuRjGr6pYOQb5HaoTJlhAMw/exec?action=climbs');
   if (!res.ok) {
     throw new Error('Failed to get climbs.')
   }
@@ -171,7 +171,7 @@ const loadClimbs = async () => {
 loadClimbs()
 
 const loadCompletion = async () => {
-  const res = await fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev?action=completion');
+  const res = await fetch('https://script.google.com/macros/s/AKfycbxzlbL6VpCjRSDVMUm_cRU0cSl2d-eIaiUEmCN8Cn0OLWvxuRjGr6pYOQb5HaoTJlhAMw/exec?action=completion');
   if (!res.ok) {
     throw new Error('Failed to get completion.')
   }
