@@ -49,8 +49,8 @@
         <div v-if="isLargeScreen">
           <span v-if="users.size === 1">{{ currentUser }}</span>
           <select v-else class="chosen-user" v-model="currentUser">
-          <option v-for="user in users" :value="user">{{ user }}</option>
-        </select>
+            <option v-for="user in users" :value="user">{{ user }}</option>
+          </select>
         </div>
         <div class="user-icon" @click="editUsers = true">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
@@ -70,7 +70,11 @@
           <span class="status ok" v-if="true">✔</span>
           <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
-          <select :id="'select-' + climb.id" :value="userCompletion.find(c => c.climb === climb.id)?.completion" @change="val => changeCompletion(climb.id, val === '' ? null : val)">
+          <select
+            :id="'select-' + climb.id"
+            :value="userCompletion.find(c => c.climb === climb.id)?.completion"
+            @change="val => changeCompletion(climb.id, val.target.value === '' ? null : val.target.value)"
+          >
             <optgroup :label="currentUser">
               <option selected value="">Ikke gennemført</option>
               <option v-for="point in climb.points" :value="point.key">{{ point.key }}</option>
@@ -144,8 +148,6 @@ const userCompletion = computed(() => completion.value.filter(c => c.device_id =
 const isLargeScreen = ref(false)
 
 const changeCompletion = async function (climbId, climbCompletion) {
-  console.log('cp', climbCompletion)
-  return
   return fetch('https://script.google.com/macros/s/AKfycbzQVsQezkpdKA9QZIaamndJ4QofY1k5a7Kggf5pxPNoLZdC1eSj5eWBBf_C3fHyZYUjcA/dev', {
     method: 'POST',
     body: JSON.stringify({
@@ -195,6 +197,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', checkScreenSize);
 });
+
+const clog = console.log
 
 </script>
 

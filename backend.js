@@ -24,7 +24,7 @@ function doPost(e) {
 
     // Update or append logic
     for (let i = 0; i < values.length; i++) {
-      if (values[i][0] === deviceId && values[i][1] === userName) { // Assuming the key is in the first column
+      if (values[i][0] === deviceId && values[i][1] === userName && values[i][2] === climb) { // Assuming the key is in the first column
         if (climbCompletion !== null) {
           sheet.getRange(i + 2, 3).setValue(climb);
           sheet.getRange(i + 2, 4).setValue(climbCompletion);
