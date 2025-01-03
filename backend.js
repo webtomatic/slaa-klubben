@@ -1,7 +1,9 @@
 // Backed by Google Sheets (Apps Script)
 
 function getLastRowInColumn(columnLetter) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const sheetName = "Gennemførsler"; // Replace with the name of your primary sheet for POST updates
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = spreadsheet.getSheetByName(sheetName);
   const columnValues = sheet.getRange(columnLetter + "1:" + columnLetter).getValues();
   for (let i = columnValues.length - 1; i >= 0; i--) {
     if (columnValues[i][0] !== "") {
