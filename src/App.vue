@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import {ref, onMounted, onUnmounted, computed} from 'vue';
+import {ref, onMounted, onUnmounted, computed, watch} from 'vue';
 import AbsOverlay from "@/AbsOverlay.vue";
 
 const randomUUID = function () {
@@ -104,7 +104,7 @@ const randomUUID = function () {
 }
 
 const deviceId = ref(null)
-if (!window.localStorage.getItem('device-id')) {
+if (window.localStorage.getItem('device-id') === null) {
   window.localStorage.setItem('device-id', randomUUID())
 }
 deviceId.value = window.localStorage.getItem('device-id')
@@ -113,7 +113,11 @@ console.debug('Device id', deviceId.value)
 
 const tab = ref('routes')
 
-const users = ref(new Set)
+let storedUsers = []
+if (window.localStorage.getItem('sk-users') !== null) {
+  storedUsers = JSON.parse(window.localStorage.getItem('sk-users'))
+}
+const users = ref(new Set(storedUsers))
 const editUsers = ref(users.value.size === 0)
 const enteredName = ref('')
 const addUser = function (name) {
@@ -127,6 +131,9 @@ const addUser = function (name) {
   enteredName.value = ''
 }
 const currentUser = ref(null)
+if (window.localStorage.getItem('current-user') !== null) {
+  currentUser.value = window.localStorage.getItem('current-user')
+}
 const isFirstUser = computed(() => users.value.size === 0)
 const deleteUser = function (name) {
   users.value.delete(name)
@@ -139,6 +146,14 @@ const deleteUser = function (name) {
 
   }
 }
+watch(users,  newUsersSet => {
+  console.log('users changed')
+  window.localStorage.setItem('sk-users', JSON.stringify([...newUsersSet.values()]))
+}, { deep: true })
+
+watch(currentUser,  user => {
+  window.localStorage.setItem('current-user', user)
+})
 
 const climbs = ref([])
 const completion = ref([])
