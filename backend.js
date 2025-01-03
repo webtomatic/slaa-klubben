@@ -1,5 +1,16 @@
 // Backed by Google Sheets (Apps Script)
 
+function getLastRowInColumn(columnLetter) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const columnValues = sheet.getRange(columnLetter + "1:" + columnLetter).getValues();
+  for (let i = columnValues.length - 1; i >= 0; i--) {
+    if (columnValues[i][0] !== "") {
+      return i + 1; // Adjust for 1-based row index
+    }
+  }
+  return 0; // No value found
+}
+
 function doPost(e) {
   try {
     const sheetName = "Gennemførsler"; // Replace with the name of your primary sheet for POST updates
@@ -17,7 +28,7 @@ function doPost(e) {
 
     const currentTime = new Date();
 
-    const numRows = sheet.getLastRow() - 1;
+    const numRows = getLastRowInColumn('A') - 1;
     const values = numRows > 0 ? sheet.getRange(2, 1, numRows, sheet.getLastColumn()).getValues() : [];
 
     let updated = false;
