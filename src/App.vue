@@ -66,7 +66,8 @@
       <h2>ALLE {{ tab === 'routes' ? 'RUTER' : 'PROBLEMER' }}</h2>
       <ul class="completelist">
         <li
-          v-for="climb in climbs.filter(c => c.type === 'route' && tab === 'routes' || c.type === 'problem' && tab === 'problems')">
+          v-for="climb in climbs.filter(c => c.type === 'route' && tab === 'routes' || c.type === 'problem' && tab === 'problems')"
+          :key="climb.id">
           <span class="status ok" v-if="true">✔</span>
           <span class="status" v-else>✖</span>
           <label class="name" :for="'select-' + climb.id">{{ climb.name }}</label>
@@ -76,8 +77,8 @@
             @change="val => changeCompletion(climb.id, val.target.value === '' ? null : val.target.value)"
           >
             <optgroup :label="currentUser">
-              <option selected value="">Ikke gennemført</option>
-              <option v-for="point in climb.points" :value="point.key">{{ point.key }}</option>
+              <option value="">Ikke gennemført</option>
+              <option v-for="point in climb.points" :value="point.key" :key="point.key">{{ point.key }}</option>
             </optgroup>
           </select>
         </li>
@@ -146,12 +147,12 @@ const deleteUser = function (name) {
 
   }
 }
-watch(users,  newUsersSet => {
+watch(users, newUsersSet => {
   console.log('users changed')
   window.localStorage.setItem('sk-users', JSON.stringify([...newUsersSet.values()]))
-}, { deep: true })
+}, {deep: true})
 
-watch(currentUser,  user => {
+watch(currentUser, user => {
   window.localStorage.setItem('current-user', user)
 })
 
@@ -163,14 +164,36 @@ const userCompletion = computed(() => completion.value.filter(c => c.device_id =
 const isLargeScreen = ref(false)
 
 const changeCompletion = async function (climbId, climbCompletion) {
+  const username = currentUser.value;
+
   return fetch(`https://script.google.com/macros/s/${import.meta.env.VITE_GOOGLE_APPS_SCRIPT_DEPLOYMENT_ID}/exec`, {
     method: 'POST',
     body: JSON.stringify({
       device_id: deviceId.value,
-      user_name: currentUser.value,
+      user_name: username,
       climb: climbId,
       completion: climbCompletion,
     }),
+  }).then(() => {
+    const finder = c => c.climb === climbId && c.device_id === deviceId.value && c.user_name === username
+    if (climbCompletion === null) {
+      const completionIndex = completion.value.findIndex(finder)
+      console.debug('found index', completionIndex)
+      completion.value.splice(completionIndex, 1)
+    } else {
+      const item = completion.value.find(finder)
+      if (item) {
+        console.debug('found item', item)
+        item.completion = climbCompletion
+      } else {
+        completion.value.push({
+          climb: climbId,
+          completion: climbCompletion,
+          device_id: deviceId.value,
+          user_name: username,
+        })
+      }
+    }
   })
 }
 
