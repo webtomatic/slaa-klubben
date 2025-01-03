@@ -53,7 +53,8 @@ function doPost(e) {
     }
 
     if (!updated) {
-      sheet.appendRow([deviceId, userName, climb, climbCompletion, currentTime]); // If no match, append to the sheet
+      const r = [deviceId, userName, climb, climbCompletion, currentTime]
+      sheet.getRange(numRows + 2, 1, 1, r.length).setValues([r]);
     }
 
     return ContentService.createTextOutput(JSON.stringify({success: true}))
